@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"os/user"
 	"path/filepath"
 	"strings"
 	"time"
@@ -21,26 +22,24 @@ var (
 	date          = ""
 	builtBy       = ""
 	defaultBucket = ""
-	credsPath     = "creds/gcp.json"
+
+	embedCredentialsFile   = "./embed/credentials.json"
+	defaultCredentialsFile = "~/.config/storing.json"
+	credentialsFile        = ""
 
 	// flag
 	object string
 	bucket string
 	ver    bool
 
-	//go:embed creds
-	creds embed.FS
+	//go:embed embed
+	em embed.FS
 )
 
-type Storing struct {
-	bucket  string
-	timeout time.Duration
-	creds   []byte
-}
-
 func init() {
-	flag.StringVar(&object, "object", "", "object name (default format \"hostname/lastdir/basename\")")
+	flag.StringVar(&object, "object", "", "object name (default format \"<hostname>/<lastdir>/<basename>\")")
 	flag.StringVar(&bucket, "bucket", defaultBucket, "bucket name")
+	flag.StringVar(&credentialsFile, "key", defaultCredentialsFile, "credentials filepath")
 	flag.BoolVar(&ver, "version", false, "show build version")
 
 	helpText := `Usage:
@@ -56,20 +55,22 @@ The options are:
 
 func main() {
 	flag.Parse()
+	args := flag.Args()
 
 	if ver {
 		fmt.Fprintf(os.Stderr, buildVersion(version, commit, date, builtBy)+"\n")
 		return
 	}
-	localfile := os.Args[1]
 
+	if len(args) == 0 {
+		flag.Usage()
+		return
+	}
+
+	localfile := args[0]
 	if localfile == "" || bucket == "" {
-		if localfile == "" {
-			fmt.Fprintf(os.Stderr, "localfile was required\n")
-		}
-		if bucket == "" {
-			fmt.Fprintf(os.Stderr, "bucket name was required\n")
-		}
+		fmt.Fprintf(os.Stderr, "Error:\n  filepath and bucket is required\n\n")
+		flag.Usage()
 		return
 	}
 
@@ -82,22 +83,41 @@ func main() {
 		object = op
 	}
 
-	json, err := creds.ReadFile(credsPath)
+	json, err := em.ReadFile(embedCredentialsFile)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "embed.FS Readfile: %v\n", err)
-		return
+		u, _ := user.Current()
+		json, err = os.ReadFile(strings.Replace(credentialsFile, "~", u.HomeDir, 1))
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "credentials file: %v\n", err)
+			return
+		}
 	}
 
 	s := &Storing{
-		bucket:  bucket,
-		timeout: time.Second * 50,
-		creds:   json,
+		bucket:      bucket,
+		timeout:     time.Second * 50,
+		credentials: json,
 	}
 	if err := s.Upload(object, localfile); err != nil {
 		fmt.Fprintf(os.Stderr, "storing.Upload: %v\n", err)
 		return
 	}
 	fmt.Fprintf(os.Stdout, "Blob %v uploaded.\n", localfile)
+}
+
+func buildVersion(version, commit, date, builtBy string) string {
+	var result = version
+	if commit != "" {
+		result = fmt.Sprintf("%s\ncommit: %s", result, commit)
+	}
+	if date != "" {
+		result = fmt.Sprintf("%s\nbuilt at: %s", result, date)
+	}
+	if builtBy != "" {
+		result = fmt.Sprintf("%s\nbuilt by: %s", result, builtBy)
+	}
+
+	return result
 }
 
 func buildObjectPath(localfile string) (string, error) {
@@ -119,10 +139,16 @@ func buildObjectPath(localfile string) (string, error) {
 	return fmt.Sprintf("%s/%s/%s", hostname, lastdir, basename), nil
 }
 
+type Storing struct {
+	bucket      string
+	timeout     time.Duration
+	credentials []byte
+}
+
 func (s *Storing) Upload(dst, src string) error {
 	// Create clinet
 	ctx := context.Background()
-	client, err := storage.NewClient(ctx, option.WithCredentialsJSON(s.creds))
+	client, err := storage.NewClient(ctx, option.WithCredentialsJSON(s.credentials))
 	if err != nil {
 		return fmt.Errorf("storage.NewClient: %v", err)
 	}
@@ -149,19 +175,4 @@ func (s *Storing) Upload(dst, src string) error {
 	}
 
 	return nil
-}
-
-func buildVersion(version, commit, date, builtBy string) string {
-	var result = version
-	if commit != "" {
-		result = fmt.Sprintf("%s\ncommit: %s", result, commit)
-	}
-	if date != "" {
-		result = fmt.Sprintf("%s\nbuilt at: %s", result, date)
-	}
-	if builtBy != "" {
-		result = fmt.Sprintf("%s\nbuilt by: %s", result, builtBy)
-	}
-
-	return result
 }
