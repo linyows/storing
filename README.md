@@ -2,7 +2,10 @@ Storing
 ==
 
 The storing is the cloud storage upload CLI which contains the credentials for upload.
+If you don't embed a credential, storing will read `~/.config/storing.json`.
 It may support AWS S3 if needed, but for now only GCS is supported.
+
+⚠️ Notice: When embedding a credential, be careful with go's binary handling. Also, regardless of embedding the credential, the credential should have the least privileges (creator privileges for one bucket).
 
 Usage
 --
@@ -11,7 +14,7 @@ In order to use the credential embedded in the go binary, place the credential i
 
 ```sh
 $ git clone https://github.com/linyows/storing.git && cd storing
-$ mv ~/Downloads/my-project-credentials.yml ./creds/gcp.json
+$ mv ~/Downloads/my-project-credentials.yml ./embed/credentials.json
 $ BUCKET=my-bucket-name make
 $ ./storing ./testdata/example.jpg
 Blob ./testdata/example.jpg uploaded: https://storage.cloud.google.com/<my-bucket-name>/<hostname>/testdata/example.jpg
@@ -24,9 +27,11 @@ The options are:
 
 ```
   -bucket string
-        bucket name (default "hosting-service-proxylog")
+        bucket name
+  -key string
+        credentials filepath (default "~/.config/storing.json")
   -object string
-        object name (default format "hostname/lastdir/basename")
+        object name (default format "<hostname>/<lastdir>/<basename>")
 ```
 
 Author
