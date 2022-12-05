@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"embed"
 	"flag"
 	"fmt"
 	"io"
@@ -17,13 +16,11 @@ import (
 )
 
 var (
-	version       = "dev"
-	commit        = ""
-	date          = ""
-	builtBy       = ""
-	defaultBucket = ""
-
-	embedCredentialsFile   = "./embed/credentials.json"
+	version                = "dev"
+	commit                 = ""
+	date                   = ""
+	builtBy                = ""
+	defaultBucket          = ""
 	defaultCredentialsFile = "~/.config/storing.json"
 	credentialsFile        = ""
 
@@ -31,9 +28,6 @@ var (
 	object string
 	bucket string
 	ver    bool
-
-	//go:embed embed
-	em embed.FS
 )
 
 func init() {
@@ -83,14 +77,11 @@ func main() {
 		object = op
 	}
 
-	json, err := em.ReadFile(embedCredentialsFile)
+	u, _ := user.Current()
+	json, err := os.ReadFile(strings.Replace(credentialsFile, "~", u.HomeDir, 1))
 	if err != nil {
-		u, _ := user.Current()
-		json, err = os.ReadFile(strings.Replace(credentialsFile, "~", u.HomeDir, 1))
-		if err != nil {
-			fmt.Fprintf(os.Stderr, "credentials file: %v\n", err)
-			return
-		}
+		fmt.Fprintf(os.Stderr, "credentials file: %v\n", err)
+		return
 	}
 
 	s := &Storing{
