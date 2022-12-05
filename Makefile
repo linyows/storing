@@ -1,8 +1,9 @@
 default: build
 
-GOOS?=darwin
-GOARCH?=arm64
-BUCKET?=linyows-storing
+BUCKET?=storing
 
 build:
-	env GOOS=$(GOOS) GOARCH=$(GOARCH) go build -ldflags "-X main.defaultBucket=$(BUCKET)" -o storing ./main.go
+	go build -ldflags "-X main.defaultBucket=$(BUCKET)" -o storing ./main.go
+
+release:
+	goreleaser release --snapshot --rm-dist
