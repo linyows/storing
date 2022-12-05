@@ -42,7 +42,7 @@ func init() {
 The options are:
 `
 	flag.Usage = func() {
-		fmt.Fprintf(flag.CommandLine.Output(), helpText)
+		fmt.Fprint(flag.CommandLine.Output(), helpText)
 		flag.PrintDefaults()
 	}
 }
