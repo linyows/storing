@@ -24,4 +24,4 @@ jobs:
       with:
         go-version: ${{ matrix.go-version }}
     - name: Go build
-      run: go build main.go
+      run: go build ./...
