@@ -94,14 +94,20 @@ func TestDo(t *testing.T) {
 		timeout: 10 * time.Second,
 	}
 	cli := &CLI{
-		out:       stdout,
-		err:       stderr,
-		args:      []string{"testdata/*.jpg"},
-		logrotate: false,
-		bucket:    bucket,
-		store:     storing,
+		out:         stdout,
+		err:         stderr,
+		args:        []string{"testdata/*.jpg"},
+		credentials: []byte("dummy"),
+		logrotate:   false,
+		bucket:      bucket,
+		store:       storing,
 	}
 	cli.Do()
+
+	if stderr.String() != "" {
+		t.Errorf("Do error: %s", stderr)
+		return
+	}
 
 	hostname, _ := os.Hostname()
 
