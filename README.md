@@ -30,8 +30,12 @@ The options are:
         bucket name
   -key string
         credentials filepath (default "~/.config/storing.json")
-  -object string
-        object name (default format "<hostname>/<lastdir>/<basename>")
+  -logrotate
+        search today's file for logrotate
+  -prefix string
+        object prefix (default "<hostname>/<lastdir>/<basename>")
+  -timeout int
+        timeout seconds for upload (default 50)
 ```
 
 Author
