@@ -29,7 +29,7 @@ type CLI struct {
 	// prefix is prefix of object
 	prefix string
 	// upload timeout
-	timeout time.Duration
+	timeout int
 	// credentials data
 	credentials []byte
 	// store interface
@@ -65,7 +65,7 @@ func (c *CLI) Do() {
 	}
 
 	if c.store == nil {
-		fmt.Fprintf(c.err, "store field is nil\n")
+		c.store = &Storing{}
 	}
 
 	c.store.SetBucket(c.bucket).SetTimeout(c.timeout).SetCredentials(c.credentials)

@@ -13,7 +13,7 @@ import (
 
 type Store interface {
 	SetBucket(b string) Store
-	SetTimeout(t time.Duration) Store
+	SetTimeout(t int) Store
 	SetCredentials(c []byte) Store
 	Upload(dst, src string) error
 }
@@ -29,8 +29,8 @@ func (s *Storing) SetBucket(b string) Store {
 	return s
 }
 
-func (s *Storing) SetTimeout(t time.Duration) Store {
-	s.timeout = t
+func (s *Storing) SetTimeout(t int) Store {
+	s.timeout = time.Duration(t) * time.Second
 	return s
 }
 

@@ -71,8 +71,8 @@ func (s *MStoring) SetBucket(b string) Store {
 	return s
 }
 
-func (s *MStoring) SetTimeout(t time.Duration) Store {
-	s.timeout = t
+func (s *MStoring) SetTimeout(t int) Store {
+	s.timeout = time.Duration(t) * time.Second
 	return s
 }
 

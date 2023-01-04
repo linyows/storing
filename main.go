@@ -4,7 +4,6 @@ import (
 	"flag"
 	"fmt"
 	"os"
-	"time"
 )
 
 var (
@@ -50,7 +49,7 @@ func main() {
 		bucket:    bucket,
 		prefix:    prefix,
 		logrotate: logrotate,
-		store:     &Storing{timeout: time.Duration(timeout) * time.Second},
+		timeout:   timeout,
 	}
 
 	cli.Do()
