@@ -44,6 +44,26 @@ func TestBuildSourcePaths(t *testing.T) {
 	}
 }
 
+func TestBuildSourcePathsWhenLogrotate(t *testing.T) {
+	cli := &CLI{
+		out:       os.Stdout,
+		err:       os.Stderr,
+		args:      []string{"testdata/*.log"},
+		logrotate: true,
+	}
+	want := []string{
+		"testdata/access.log.1",
+		"testdata/error.log.1",
+	}
+	got, err := cli.buildSourcePaths()
+	if err != nil {
+		t.Errorf("buildSourcePaths error: %#v", err)
+	}
+	if !reflect.DeepEqual(got, want) {
+		t.Errorf("want %s, but got %s", want, got)
+	}
+}
+
 func TestBuildObjectPath(t *testing.T) {
 	hostname, _ := os.Hostname()
 	localfile := "testdata/example.jpg"
