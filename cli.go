@@ -63,6 +63,10 @@ func (c *CLI) Do() {
 		fmt.Fprintf(c.err, "buildSourcePaths: %v\n", err)
 		return
 	}
+	if c.logrotate && len(sourcePaths) == 0 {
+		fmt.Fprintf(c.err, "logrotate file not found")
+		return
+	}
 
 	if c.store == nil {
 		c.store = &Storing{}
