@@ -102,7 +102,7 @@ func (c *CLI) buildSourcePaths() ([]string, error) {
 				patterns := c.getLogrotatePatterns(file)
 				for _, p := range patterns {
 					_, err := os.Stat(p)
-					if os.IsExist(err) {
+					if err == nil {
 						sourcePaths = append(sourcePaths, p)
 					}
 				}
